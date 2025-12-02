@@ -1,0 +1,24 @@
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Party {
+  id           String        @id @default(uuid())
+  name         String
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String  @id @default(uuid())
+  partyId     String
+  party       Party   @relation(fields: [partyId], references: [id], onDelete: Cascade)
+  date        String
+  amount      Float
+  kind        String
+  description String?
+}
