@@ -1,11 +1,11 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import TransactionsView from "../../components/TransactionsView";
 import useAccounts from "../../lib/useAccounts";
 
-export default function TransactionsPage() {
+function TransactionsInner() {
   const acc = useAccounts();
   const searchParams = useSearchParams();
   const queryParty = searchParams?.get("party") || null;
@@ -36,5 +36,13 @@ export default function TransactionsPage() {
         />
       </div>
     </div>
+  );
+}
+
+export default function TransactionsPage() {
+  return (
+    <Suspense fallback={<div className="p-4">Loading...</div>}>
+      <TransactionsInner />
+    </Suspense>
   );
 }
