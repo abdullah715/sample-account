@@ -33,6 +33,7 @@ function TransactionsInner() {
           onAdd={(tx) => acc.addTransaction(tx)}
           onUpdate={(id, patch) => acc.updateTransaction(id, patch)}
           onDelete={(id) => acc.deleteTransaction(id)}
+          onRename={(id, newName) => acc.renameParty(id, newName)}
         />
       </div>
     </div>

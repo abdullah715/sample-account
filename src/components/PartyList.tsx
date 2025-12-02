@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Party } from "../lib/types";
-import { UserPlus, User, ChevronRight } from "lucide-react";
+import { UserPlus, User, ChevronRight, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -9,9 +9,10 @@ type Props = {
   consolidated: Map<string, number>;
   onSelect: (id: string | null) => void;
   onAdd: (name: string) => void;
+  onDelete?: (id: string) => void;
 };
 
-export default function PartyList({ parties, consolidated, onSelect, onAdd }: Props) {
+export default function PartyList({ parties, consolidated, onSelect, onAdd, onDelete }: Props) {
   const [name, setName] = useState("");
 
   // compute totals for the summary
@@ -67,6 +68,23 @@ export default function PartyList({ parties, consolidated, onSelect, onAdd }: Pr
                   </div>
                   <ChevronRight size={18} className="small-muted" />
                 </button>
+
+                {/* Delete button: only enabled when balance is exactly zero and onDelete is provided */}
+                {onDelete && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (bal !== 0) return;
+                      if (!confirm(`Delete party "${p.name}"? This action cannot be undone.`)) return;
+                      onDelete(p.id);
+                    }}
+                    title={bal === 0 ? "Delete party" : "Cannot delete: non-zero balance"}
+                    className={`ml-2 btn btn-ghost btn-sm ${bal !== 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={bal !== 0}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </li>
             );
           })}

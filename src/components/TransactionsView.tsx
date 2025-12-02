@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Transaction, Party } from "../lib/types";
 import { PlusCircle, Edit, Trash2, Save, X } from "lucide-react";
+import useAccounts from "@/lib/useAccounts";
 
 type Props = {
   party?: Party | null;
@@ -9,13 +10,15 @@ type Props = {
   onAdd: (tx: Omit<Transaction, "id">) => void;
   onUpdate: (id: string, patch: Partial<Transaction>) => void;
   onDelete: (id: string) => void;
+  onRename: (id: string, newName: string) => void;
 };
 
-export default function TransactionsView({ party, transactions, onAdd, onUpdate, onDelete }: Props) {
+export default function TransactionsView({ party, transactions, onAdd, onUpdate, onDelete,onRename }: Props) {
   const relevant = transactions.filter((t) => t.partyId === party?.id);
   const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), amount: "", kind: "owed", description: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [name, setName] = useState(party?.name || "");
 
   const handleAddSave = (vals: { date: string; amount: number; kind: string; description?: string }) => {
     const amount = vals.amount || 0;
@@ -25,6 +28,18 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
     setShowAddModal(false);
   };
 
+  const timer = useRef<NodeJS.Timeout | null>(null);
+
+  const handleRename = (e: React.FormEvent<HTMLHeadingElement>) => {
+    const newName = e.currentTarget.innerHTML;
+    setName(newName);
+    if (party && newName && newName !== party.name) {
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        onRename(party.id, newName);
+      }, 500);
+    }
+  };
   return (
     <section className="flex-1">
       {!party ? (
@@ -32,7 +47,7 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
       ) : (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-semibold">{party.name}</h2>
+            <h2 className="text-xl font-semibold" contentEditable={true} onBlur={handleRename} dangerouslySetInnerHTML={{ __html: name }}></h2>
             <div className="small-muted">Total: <span className="badge">{(relevant.reduce((s, t) => s + (t.kind === "owed" ? t.amount : -t.amount), 0)).toFixed(2)}</span></div>
           </div>
 
@@ -109,8 +124,8 @@ function AddTransactionModal({
           <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input" />
           <input placeholder="amount" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="input w-32" />
           <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value })} className="input w-44">
-            <option value="owed">Party owes you</option>
-            <option value="owe">You owe party</option>
+            <option value="owed">Given</option>
+            <option value="owe">Taken</option>
           </select>
           <input placeholder="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input flex-1" />
         </div>
@@ -150,8 +165,8 @@ function EditTransaction({ tx, onCancel, onSave }: { tx: Transaction; onCancel: 
           <input type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} className="input" />
           <input value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} className="input w-32" />
           <select value={form.kind} onChange={(e) => setForm({ ...form, kind: e.target.value as any })} className="input w-44">
-            <option value="owed">Party owes you</option>
-            <option value="owe">You owe party</option>
+            <option value="owed">Given</option>
+            <option value="owe">Taken</option>
           </select>
           <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="input flex-1" />
         </div>

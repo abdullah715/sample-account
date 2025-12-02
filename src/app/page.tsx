@@ -21,6 +21,7 @@ export default function Home() {
             consolidated={consolidated}
             onSelect={(id) => setSelected(id)}
             onAdd={(name) => acc.addParty(name)}
+            onDelete={(id) => acc.removeParty(id)}
           />
         </div>
       </div>
