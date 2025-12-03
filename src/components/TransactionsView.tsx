@@ -3,6 +3,7 @@ import React, { useRef, useState } from "react";
 import { Transaction, Party } from "../lib/types";
 import { PlusCircle, Edit, Trash2, Save, X } from "lucide-react";
 import useAccounts from "@/lib/useAccounts";
+import { formatCurrencyShort } from "@/lib/utils";
 
 type Props = {
   party?: Party | null;
@@ -18,7 +19,7 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
   const [form, setForm] = useState({ date: new Date().toISOString().slice(0, 10), amount: "", kind: "owed", description: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [name, setName] = useState(party?.name || "");
+  // const [name, setName] = useState(party?.name || "");
 
   const handleAddSave = (vals: { date: string; amount: number; kind: string; description?: string }) => {
     const amount = vals.amount || 0;
@@ -32,7 +33,7 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
 
   const handleRename = (e: React.FormEvent<HTMLHeadingElement>) => {
     const newName = e.currentTarget.innerHTML;
-    setName(newName);
+    // setName(newName);
     if (party && newName && newName !== party.name) {
       if (timer.current) clearTimeout(timer.current);
       timer.current = setTimeout(() => {
@@ -40,6 +41,8 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
       }, 500);
     }
   };
+
+  const total = relevant.reduce((s, t) => s + (t.kind === "owed" ? t.amount : -t.amount), 0);
   return (
     <section className="flex-1">
       {!party ? (
@@ -47,8 +50,8 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
       ) : (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xl font-semibold" contentEditable={true} onBlur={handleRename} dangerouslySetInnerHTML={{ __html: name }}></h2>
-            <div className="small-muted">Total: <span className="badge">{(relevant.reduce((s, t) => s + (t.kind === "owed" ? t.amount : -t.amount), 0)).toFixed(2)}</span></div>
+            <h2 className="text-xl font-semibold" contentEditable={true} onBlur={handleRename} suppressContentEditableWarning>{party?.name}</h2>
+            <div className="small-muted">Total: <span className="badge">{formatCurrencyShort(total)}</span></div>
           </div>
 
           <div className="card">
@@ -58,11 +61,11 @@ export default function TransactionsView({ party, transactions, onAdd, onUpdate,
 
             <ul className="mt-4 space-y-3">
               {relevant.length === 0 && <li className="small-muted">No transactions yet.</li>}
-              {relevant.map((t) => (
+              {relevant.sort((a, b) => -new Date(a.date).getTime() + new Date(b.date).getTime()).map((t) => (
                 <li key={t.id} className="flex items-center justify-between">
                   <div>
                     <div className="small-muted">{t.date}</div>
-                    <div className={`font-medium ${t.kind === "owed" ? "text-green-600" : "text-red-600"}`}>{t.kind === "owed" ? `+${t.amount.toFixed(2)}` : `-${t.amount.toFixed(2)}`}</div>
+                    <div className={`font-medium ${t.kind === "owed" ? "text-green-600" : "text-red-600"}`}>{t.kind === "owed" ? `+${formatCurrencyShort(t.amount)}` : `-${formatCurrencyShort(t.amount)}`}</div>
                     <div className="small-muted">{t.description}</div>
                   </div>
 
@@ -139,7 +142,7 @@ function AddTransactionModal({
             }}
             className="btn btn-primary"
           >
-            <Save size={16} /> Save
+            <Save size={16} />
           </button>
         </div>
       </div>
@@ -157,7 +160,7 @@ function EditTransaction({ tx, onCancel, onSave }: { tx: Transaction; onCancel: 
           <h3 className="font-semibold">Edit transaction</h3>
           <div className="flex gap-2">
             <button onClick={onCancel} className="btn btn-ghost"><X size={16} /></button>
-            <button onClick={() => onSave({ date: form.date, amount: parseFloat(form.amount || "0") || 0, kind: form.kind as any, description: form.description || undefined })} className="btn btn-primary"><Save size={16} /> Save</button>
+            <button onClick={() => onSave({ date: form.date, amount: parseFloat(form.amount || "0") || 0, kind: form.kind as any, description: form.description || undefined })} className="btn btn-primary"><Save size={16} /></button>
           </div>
         </div>
 

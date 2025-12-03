@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Party } from "../lib/types";
 import { UserPlus, User, ChevronRight, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatCurrencyShort } from "@/lib/utils";
 
 type Props = {
   parties: Party[];
@@ -27,26 +28,20 @@ export default function PartyList({ parties, consolidated, onSelect, onAdd, onDe
 
   return (
     <aside className="w-full p-2">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Parties</h2>
-        <button className="btn btn-ghost" title="Add party">
-          <UserPlus size={18} />
-        </button>
-      </div>
 
       {/* Totals summary */}
       <div className="mb-4 grid grid-cols-3 gap-2">
         <div className="p-3 bg-dark rounded shadow text-center">
           <div className="text-sm small-muted">Total Owed</div>
-          <div className="font-semibold">{totalOwed.toFixed(2)}</div>
+          <div className="font-semibold">{formatCurrencyShort(totalOwed)}</div>
         </div>
         <div className="p-3 bg-dark rounded shadow text-center">
           <div className="text-sm small-muted">Total Owe</div>
-          <div className="font-semibold">{totalOwe.toFixed(2)}</div>
+          <div className="font-semibold">{formatCurrencyShort(totalOwe)}</div>
         </div>
         <div className={`p-3 rounded shadow text-center ${net >= 0 ? "bg-emerald-500" : "bg-rose-500"}`}>
           <div className="text-sm ">Net</div>
-          <div className="font-semibold">{net.toFixed(2)}</div>
+          <div className="font-semibold">{formatCurrencyShort(net)}</div>
         </div>
       </div>
 
@@ -64,7 +59,7 @@ export default function PartyList({ parties, consolidated, onSelect, onAdd, onDe
                   </div>
                   <div className="flex-1">
                     <div className="font-medium">{p.name}</div>
-                    <div className={`font-medium ${bal >= 0 ? "text-green-600" : "text-red-600"}`}>{bal >= 0 ? `+${bal.toFixed(2)}` : `${bal.toFixed(2)}`}</div>
+                    <div className={`font-medium ${bal >= 0 ? "text-green-600" : "text-red-600"}`}>{bal >= 0 ? `+${formatCurrencyShort(bal)}` : `${formatCurrencyShort(bal)}`}</div>
                   </div>
                   <ChevronRight size={18} className="small-muted" />
                 </button>
